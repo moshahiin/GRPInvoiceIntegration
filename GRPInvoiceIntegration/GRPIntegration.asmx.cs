@@ -17,8 +17,8 @@ namespace GRPInvoiceIntegration
     public class GRPIntegration : System.Web.Services.WebService
     {
 
-        //string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.56.54)(PORT=1541)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SITE)));User Id=xx_rtaif;Password=m0rning_site;";
-        string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.48.55)(PORT=1571)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=PROD1)));User Id=xx_rtaif;Password=v1r_rt8r330;";
+        string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.56.54)(PORT=1541)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SITE)));User Id=xx_rtaif;Password=v1r_rt8r330;";
+        //string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.48.55)(PORT=1571)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=PROD1)));User Id=xx_rtaif;Password=v1r_rt8r330;";
 
         [WebMethod]
         public string ImportInvoiceData(List<APInvoiceDetails> APInvoiceDetails)
@@ -40,17 +40,33 @@ namespace GRPInvoiceIntegration
                 {
                     if (item.DIST_CODE_COMBINATION_CODE.Trim() != "00-000-0000-00000-00-00000-00000-00000")
                     {
+                        if (item.PRODUCT_CATEGORY.Trim().Length > 0)
+                        {
 
-                        string _script = " insert into XX_RTA_AP_INV_INTERFACE(INVOICE_NUM,INVOICE_TYPE_LOOKUP_CODE,INVOICE_DATE,GL_DATE,VENDOR_NAME,VENDOR_SITE_CODE,INVOICE_AMOUNT";
-                        _script += ",INVOICE_CURRENCY_CODE,DESCRIPTION,SOURCE,TERMS_NAME,ACCTS_PAY_COMBINATION_CODE,ORG_ID,LINE_NUMBER,LINE_TYPE_LOOKUP_CODE,AMOUNT";
-                        _script += ",ACCOUNTING_DATE,DIST_CODE_COMBINATION_CODE,ATTRIBUTE_CATEGORY,ATTRIBUTE3,ATTRIBUTE9,ATTRIBUTE6,ATTRIBUTE5,ATTRIBUTE10,ATTRIBUTE11";
-                        _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE)";
-                        _script += " values('" + item.INVOICE_NUM + "','" + item.INVOICE_TYPE_LOOKUP_CODE + "', to_date('" + item.INVOICE_DATE.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY') ,to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.VENDOR_NAME + "','" + item.VENDOR_SITE_CODE + "','" + item.INVOICE_AMOUNT + "'";
-                        _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
-                        _script += ",to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.DIST_CODE_COMBINATION_CODE + "','" + item.ATTRIBUTE_CATEGORY + "','" + item.ATTRIBUTE3 + "','" + item.ATTRIBUTE9 + "','" + item.ATTRIBUTE6 + "','" + item.ATTRIBUTE5 + "','" + item.ATTRIBUTE10 + "','" + item.ATTRIBUTE11 + "'";
-                        _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "');";
-                        _completescript += _script;
-                        linenum = linenum + 1;
+                            string _script = " insert into XX_RTA_AP_INV_INTERFACE(INVOICE_NUM,INVOICE_TYPE_LOOKUP_CODE,INVOICE_DATE,GL_DATE,VENDOR_NAME,VENDOR_SITE_CODE,INVOICE_AMOUNT";
+                            _script += ",INVOICE_CURRENCY_CODE,DESCRIPTION,SOURCE,TERMS_NAME,ACCTS_PAY_COMBINATION_CODE,ORG_ID,LINE_NUMBER,LINE_TYPE_LOOKUP_CODE,AMOUNT";
+                            _script += ",ACCOUNTING_DATE,DIST_CODE_COMBINATION_CODE,ATTRIBUTE_CATEGORY,ATTRIBUTE3,ATTRIBUTE9,ATTRIBUTE6,ATTRIBUTE5,ATTRIBUTE10,ATTRIBUTE11";
+                            _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE,TAX_RATE_CODE,TAX_AMOUNT,PRODUCT_CATEGORY)";
+                            _script += " values('" + item.INVOICE_NUM + "','" + item.INVOICE_TYPE_LOOKUP_CODE + "', to_date('" + item.INVOICE_DATE.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY') ,to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.VENDOR_NAME + "','" + item.VENDOR_SITE_CODE + "','" + item.INVOICE_AMOUNT + "'";
+                            _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
+                            _script += ",to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.DIST_CODE_COMBINATION_CODE + "','" + item.ATTRIBUTE_CATEGORY + "','" + item.ATTRIBUTE3 + "','" + item.ATTRIBUTE9 + "','" + item.ATTRIBUTE6 + "','" + item.ATTRIBUTE5 + "','" + item.ATTRIBUTE10 + "','" + item.ATTRIBUTE11 + "'";
+                            _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "','" + item.TAX_RATE_CODE + "'," + item.TAX_AMOUNT + ",'" + item.PRODUCT_CATEGORY.Trim() + "');";
+                            _completescript += _script;
+                            linenum = linenum + 1;
+                        }
+                        else
+                        {
+                            string _script = " insert into XX_RTA_AP_INV_INTERFACE(INVOICE_NUM,INVOICE_TYPE_LOOKUP_CODE,INVOICE_DATE,GL_DATE,VENDOR_NAME,VENDOR_SITE_CODE,INVOICE_AMOUNT";
+                            _script += ",INVOICE_CURRENCY_CODE,DESCRIPTION,SOURCE,TERMS_NAME,ACCTS_PAY_COMBINATION_CODE,ORG_ID,LINE_NUMBER,LINE_TYPE_LOOKUP_CODE,AMOUNT";
+                            _script += ",ACCOUNTING_DATE,DIST_CODE_COMBINATION_CODE,ATTRIBUTE_CATEGORY,ATTRIBUTE3,ATTRIBUTE9,ATTRIBUTE6,ATTRIBUTE5,ATTRIBUTE10,ATTRIBUTE11";
+                            _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE,TAX_RATE_CODE,TAX_AMOUNT)";
+                            _script += " values('" + item.INVOICE_NUM + "','" + item.INVOICE_TYPE_LOOKUP_CODE + "', to_date('" + item.INVOICE_DATE.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY') ,to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.VENDOR_NAME + "','" + item.VENDOR_SITE_CODE + "','" + item.INVOICE_AMOUNT + "'";
+                            _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
+                            _script += ",to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.DIST_CODE_COMBINATION_CODE + "','" + item.ATTRIBUTE_CATEGORY + "','" + item.ATTRIBUTE3 + "','" + item.ATTRIBUTE9 + "','" + item.ATTRIBUTE6 + "','" + item.ATTRIBUTE5 + "','" + item.ATTRIBUTE10 + "','" + item.ATTRIBUTE11 + "'";
+                            _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "','" + item.TAX_RATE_CODE + "'," + item.TAX_AMOUNT + ");";
+                            _completescript += _script;
+                            linenum = linenum + 1;
+                        }
                     }
 
                 }

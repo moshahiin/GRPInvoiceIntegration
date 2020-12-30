@@ -142,6 +142,12 @@ namespace GRPInvoiceIntegration
         /// </summary>
         public PaymentMethods PAYMENT_METHOD_LOOKUP_CODE { get; set; }
 
+        public decimal TAX_AMOUNT { get; set; }
+
+        public string TAX_RATE_CODE { get; set; }
+
+        public string PRODUCT_CATEGORY { get; set; }
+      
 
     }
 }
