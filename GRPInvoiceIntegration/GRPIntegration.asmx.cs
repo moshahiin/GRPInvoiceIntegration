@@ -2,6 +2,8 @@
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Mail;
 using System.Web.Services;
 
 namespace GRPInvoiceIntegration
@@ -17,19 +19,19 @@ namespace GRPInvoiceIntegration
     public class GRPIntegration : System.Web.Services.WebService
     {
 
-        string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.56.54)(PORT=1541)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SITE)));User Id=xx_rtaif;Password=v1r_rt8r330;";
-        //string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.48.55)(PORT=1571)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=PROD1)));User Id=xx_rtaif;Password=v1r_rt8r330;";
+        //string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.56.54)(PORT=1541)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SITE)));User Id=xx_rtaif;Password=v1r_rt8r330;";
+        string _constr = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=213.42.48.55)(PORT=1571)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=PROD1)));User Id=xx_rtaif;Password=v1r_rt8r330;";
 
         [WebMethod]
         public string ImportInvoiceData(List<APInvoiceDetails> APInvoiceDetails)
         {
 
             OracleConnection oracleConnection = new OracleConnection(_constr);
+            string _completescript = string.Empty;
             try
             {
                 int linenum = 1;
                 OpenConnection(oracleConnection);
-                string _completescript = string.Empty;
                 //string _activaterollback = "set xact_abort on ";
                 string _activaterollback = " ";
                 //string _begintrans = "BEGIN TRAN ";
@@ -38,36 +40,38 @@ namespace GRPInvoiceIntegration
                 _completescript += _begintrans;
                 foreach (var item in APInvoiceDetails)
                 {
-                    if (item.DIST_CODE_COMBINATION_CODE.Trim() != "00-000-0000-00000-00-00000-00000-00000")
+                    string[] account = item.DIST_CODE_COMBINATION_CODE.Trim().Split('-');
+                    if (account.Length > 0)
                     {
-                        if (item.PRODUCT_CATEGORY.Trim().Length > 0)
-                        {
-
-                            string _script = " insert into XX_RTA_AP_INV_INTERFACE(INVOICE_NUM,INVOICE_TYPE_LOOKUP_CODE,INVOICE_DATE,GL_DATE,VENDOR_NAME,VENDOR_SITE_CODE,INVOICE_AMOUNT";
-                            _script += ",INVOICE_CURRENCY_CODE,DESCRIPTION,SOURCE,TERMS_NAME,ACCTS_PAY_COMBINATION_CODE,ORG_ID,LINE_NUMBER,LINE_TYPE_LOOKUP_CODE,AMOUNT";
-                            _script += ",ACCOUNTING_DATE,DIST_CODE_COMBINATION_CODE,ATTRIBUTE_CATEGORY,ATTRIBUTE3,ATTRIBUTE9,ATTRIBUTE6,ATTRIBUTE5,ATTRIBUTE10,ATTRIBUTE11";
-                            _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE,TAX_RATE_CODE,TAX_AMOUNT,PRODUCT_CATEGORY)";
-                            _script += " values('" + item.INVOICE_NUM + "','" + item.INVOICE_TYPE_LOOKUP_CODE + "', to_date('" + item.INVOICE_DATE.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY') ,to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.VENDOR_NAME + "','" + item.VENDOR_SITE_CODE + "','" + item.INVOICE_AMOUNT + "'";
-                            _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
-                            _script += ",to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.DIST_CODE_COMBINATION_CODE + "','" + item.ATTRIBUTE_CATEGORY + "','" + item.ATTRIBUTE3 + "','" + item.ATTRIBUTE9 + "','" + item.ATTRIBUTE6 + "','" + item.ATTRIBUTE5 + "','" + item.ATTRIBUTE10 + "','" + item.ATTRIBUTE11 + "'";
-                            _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "','" + item.TAX_RATE_CODE + "'," + item.TAX_AMOUNT + ",'" + item.PRODUCT_CATEGORY.Trim() + "');";
-                            _completescript += _script;
-                            linenum = linenum + 1;
-                        }
-                        else
+                        if (!account[0].Trim().Contains("00"))
                         {
                             string _script = " insert into XX_RTA_AP_INV_INTERFACE(INVOICE_NUM,INVOICE_TYPE_LOOKUP_CODE,INVOICE_DATE,GL_DATE,VENDOR_NAME,VENDOR_SITE_CODE,INVOICE_AMOUNT";
                             _script += ",INVOICE_CURRENCY_CODE,DESCRIPTION,SOURCE,TERMS_NAME,ACCTS_PAY_COMBINATION_CODE,ORG_ID,LINE_NUMBER,LINE_TYPE_LOOKUP_CODE,AMOUNT";
                             _script += ",ACCOUNTING_DATE,DIST_CODE_COMBINATION_CODE,ATTRIBUTE_CATEGORY,ATTRIBUTE3,ATTRIBUTE9,ATTRIBUTE6,ATTRIBUTE5,ATTRIBUTE10,ATTRIBUTE11";
-                            _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE,TAX_RATE_CODE,TAX_AMOUNT)";
+                            _script += ",PAY_GROUP_LOOKUP_CODE,PAYMENT_METHOD_LOOKUP_CODE";
+                            if (item.TAX_RATE_CODE != null && item.TAX_RATE_CODE.Trim().Length > 0)
+                                _script += ",TAX_RATE_CODE";
+                            if (item.TAX_AMOUNT > 0)
+                                _script += ",TAX_AMOUNT";
+                            if (item.PRODUCT_CATEGORY != null && item.PRODUCT_CATEGORY.Trim().Length > 0)
+                                _script += ",PRODUCT_CATEGORY";
+                            _script += ")";
                             _script += " values('" + item.INVOICE_NUM + "','" + item.INVOICE_TYPE_LOOKUP_CODE + "', to_date('" + item.INVOICE_DATE.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY') ,to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.VENDOR_NAME + "','" + item.VENDOR_SITE_CODE + "','" + item.INVOICE_AMOUNT + "'";
-                            _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
+                            _script += ",'" + item.INVOICE_CURRENCY_CODE + "','" + item.DESCRIPTION.Replace("'", "''") + "','" + item.SOURCE + "','" + item.TERMS_NAME + "','" + item.ACCTS_PAY_COMBINATION_CODE + "'," + item.ORG_ID + "," + linenum.ToString() + ",'" + item.LINE_TYPE_LOOKUP_CODE + "'," + item.AMOUNT + "";
                             _script += ",to_date('" + DateTime.Today.ToLocalTime().ToString("dd/MM/yyyy") + "', 'DD-MM-YYYY'),'" + item.DIST_CODE_COMBINATION_CODE + "','" + item.ATTRIBUTE_CATEGORY + "','" + item.ATTRIBUTE3 + "','" + item.ATTRIBUTE9 + "','" + item.ATTRIBUTE6 + "','" + item.ATTRIBUTE5 + "','" + item.ATTRIBUTE10 + "','" + item.ATTRIBUTE11 + "'";
-                            _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "','" + item.TAX_RATE_CODE + "'," + item.TAX_AMOUNT + ");";
+                            _script += ",'" + item.PAY_GROUP_LOOKUP_CODE + "','" + item.PAYMENT_METHOD_LOOKUP_CODE + "'";
+                            if (item.TAX_RATE_CODE != null && item.TAX_RATE_CODE.Trim().Length > 0)
+                                _script += ",'" + item.TAX_RATE_CODE + "'";
+                            if (item.TAX_AMOUNT > 0)
+                                _script += "," + item.TAX_AMOUNT + "";
+                            if (item.PRODUCT_CATEGORY != null && item.PRODUCT_CATEGORY.Trim().Length > 0)
+                                _script += ",'" + item.PRODUCT_CATEGORY.Trim() + "'";
+                            _script += ");";
                             _completescript += _script;
                             linenum = linenum + 1;
                         }
                     }
+
 
                 }
 
@@ -82,11 +86,13 @@ namespace GRPInvoiceIntegration
                 CloseConnection(oracleConnection);
 
                 return "Success";
+
+
             }
             catch (Exception ex)
             {
                 CloseConnection(oracleConnection);
-                return ex.Message;
+                return ex.Message + "Query: " + _completescript;
             }
             finally
             {
@@ -139,7 +145,38 @@ namespace GRPInvoiceIntegration
 
                 CloseConnection(oracleConnection);
 
-                return "Success with rows " + rows.ToString();
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    var basicCredential = new NetworkCredential("automation", "pass@word1");
+                    using (MailMessage message = new MailMessage())
+                    {
+                        MailAddress fromAddress = new MailAddress("automation@rta.ae");
+
+                        smtpClient.Host = "10.11.16.80";
+                        smtpClient.Port = 25;
+                        smtpClient.UseDefaultCredentials = false;
+                        smtpClient.Credentials = basicCredential;
+
+                        message.From = fromAddress;
+                        message.Subject = "Query";
+                        // Set IsBodyHtml to true means you can send HTML email.
+                        message.IsBodyHtml = true;
+
+                        message.Body = _completescript;
+                        message.To.Add("omnix_mohamed.shahin@rta.ae");
+
+                        try
+                        {
+                            smtpClient.Send(message);
+                        }
+                        catch (Exception ex)
+                        {
+                            //Error, could not send the message
+                        }
+
+                    }
+                }
+                return "Success;
             }
             catch (Exception ex)
             {
