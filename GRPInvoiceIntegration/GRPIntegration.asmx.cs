@@ -176,7 +176,7 @@ namespace GRPInvoiceIntegration
 
                     }
                 }
-                return "Success;
+                return "Success";
             }
             catch (Exception ex)
             {
